@@ -60,15 +60,6 @@ _start:
 .section .text
 
 4:
-	# At this point, paging is fully set up and enabled.
-
-	# Unmap the identity mapping as it is now unnecessary. 
-	movl $0, boot_page_directory + 0
-
-	# Reload crc3 to force a TLB flush so the changes to take effect.
-	movl %cr3, %ecx
-	movl %ecx, %cr3
-
 	# Set up the stack.
 	mov $stack_top, %esp
 
