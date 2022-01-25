@@ -14,36 +14,33 @@
 
 # Allocate the initial stack.
 .section .bootstrap_stack, "aw", @nobits
-.align 16
 stack_bottom:
 .skip 16384 # 16 KiB
 stack_top:
 
-.section .init_stack, "aw", @nobits
-.align 16
-.skip 16384 # 16 KiB
-stack_top_i:
-
-
+# Preallocate pages used for paging. Don't hard-code addresses and assume they
+# are available, as the bootloader might have loaded its multiboot structures or
+# modules there. This lets the bootloader know it must avoid the addresses.
 .section .bss, "aw", @nobits
 	.align 4096
 .global boot_page_directory
+.global boot_page_table1
 boot_page_directory:
 	.skip 4096
-boot_page_tables:
-	.skip 4096*16 /*(edited)*/
-#  the kernel is smaller then (4*15) MiB.
+boot_page_table1:
+	.skip (4096*16)
+# Further page tables may be required if the kernel grows beyond 3 MiB.
 
 # The kernel entry point.
 .section .multiboot.text, "a"
 .global _start
 .type _start, @function
 _start:
-    # to be done.Use init() to set up page table. 
-    mov $stack_top_i, %esp
-	mov $(boot_page_directory - 0xC0000000),%eax # pass boot_page_directory to init()
-	call init
 
+
+3:
+	mov $(stack_top - 0xC0000000), %esp
+    call init
 
 	# Set cr3 to the address of the boot_page_directory.
 	movl $(boot_page_directory - 0xC0000000), %ecx
@@ -54,16 +51,16 @@ _start:
 	orl $0x80010000, %ecx
 	movl %ecx, %cr0
 
-	# Jump to higher half with an absolute jump. 
+	# Jump to higher half with an absolute jump.
 	lea 4f, %ecx
 	jmp *%ecx
 
 .section .text
 
 4:
+	# At this point, paging is fully set up and enabled.
 	# Set up the stack.
-	mov $stack_top, %esp
-
+	mov $stack_top , %esp
 	# Enter the high-level kernel.
 	call kernel_main
 
