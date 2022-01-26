@@ -5,6 +5,8 @@
 extern uint8_t _kernel_end[];
 extern uint8_t boot_page_directory[];
 extern uint8_t boot_page_table1[];
+extern uint8_t gdt[];
+
 void init(){
 //init paging and gdt
             uint32_t * pagedir=((uint32_t) boot_page_directory)-0xC0000000;
@@ -45,4 +47,23 @@ void init(){
                     if (finished) break;
                 }
 
+}
+
+void setGDT(){
+            uint32_t * gdtp=gdt;
+            
+            gdtp[0]=0;
+            gdtp[1]=0;
+
+            gdtp[2]=00000000110011111001101000000000b;
+            gdtp[3]=00000000000000001111111111111111b;//os,code
+            
+            gdtp[4]=00000000110011111001001000000000b;
+            gdtp[5]=00000000000000001111111111111111b;//os,data
+
+            gdtp[6]=00000000110011111111101000000000b;
+            gdtp[7]=00000000000000001111111111111111b;//user,code
+
+            gdtp[8]=00000000110011111111001000000000b;
+            gdtp[9]=00000000000000001111111111111111b;//os,data
 }

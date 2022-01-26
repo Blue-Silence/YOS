@@ -31,14 +31,35 @@ boot_page_table1:
 	.skip (4096*16)
 # Further page tables may be required if the kernel grows beyond 3 MiB.
 
+.section .init, "aw",@nobit
+	.align 4096
+.global gdt
+gdt:
+	.skip 4096 # Allow 512 entry
+
 # The kernel entry point.
 .section .multiboot.text, "a"
 .global _start
 .type _start, @function
 _start:
 
+   mov $(stack_top - 0xC0000000), %esp
+   call setGDT
+   lgdt $((gdt<<16)+511)
 
-3:
+
+   jmp   $0x08:.reload_CS ; 0x08 points at the new code selector
+.reload_CS:
+   ; Reload data segment registers:
+   mov   $0x10,%ax ; 0x10 points at the new data selector
+   mov   %ax,%ds
+   mov   %ax,%es
+   mov   %ax,%fs
+   mov   %ax,%gs
+   mov   %ax,%ss
+   ret
+
+	
 	mov $(stack_top - 0xC0000000), %esp
     call init
 
