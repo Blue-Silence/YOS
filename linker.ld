@@ -18,7 +18,8 @@ SECTIONS
 
     .init ALIGN (4K) :
 	{
-		init.o(*)
+		init_paging.o(*)
+		init_gdt.o(*)
 	}
 
 
@@ -26,12 +27,12 @@ SECTIONS
 	. += 0xC0000000;
 	/* Add a symbol that indicates the start address of the kernel. */
 
-		.bss_i ALIGN (4K) : AT (ADDR (.bss_i) - 0xC0000000)
+	/*	.bss_i ALIGN (4K) : AT (ADDR (.bss_i) - 0xC0000000)
 	{
 		*(COMMON)
 		*(.bss)
 		*(.bootstrap_stack)
-	}
+	} */
 
 		.text ALIGN (4K) : AT (ADDR (.text) - 0xC0000000)
 	{
