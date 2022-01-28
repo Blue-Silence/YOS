@@ -1,8 +1,7 @@
 # Declare constants for the multiboot header.
 .set ALIGN,    1<<0             # align loaded modules on page boundaries
 .set MEMINFO,  1<<1
-.set MEMMAP,   1<<6             # provide memory map
-.set FLAGS,    ALIGN | MEMINFO | MEMMAP # this is the Multiboot 'flag' field
+.set FLAGS,    ALIGN | MEMINFO  # this is the Multiboot 'flag' field
 .set MAGIC,    0x1BADB002       # 'magic number' lets bootloader find the header
 .set CHECKSUM, -(MAGIC + FLAGS) # checksum of above, to prove we are multiboot
 
@@ -52,7 +51,7 @@ temp:
 .type _start, @function
 _start:
 	mov $(stack_top - 0xC0000000), %esp
-	mov %ebx, $temp
+	mov %ebx, (temp)
 	call mmap
 
 

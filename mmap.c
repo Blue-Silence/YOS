@@ -1,7 +1,4 @@
-struct mem_ptr{
-    uint32_t mmap_length;
-    uint32_t mmap_addr;
-} __attribute__((packed));
+#include <stdint.h>
 
 typedef struct mem_node{
     uint32_t size;
@@ -23,7 +20,7 @@ int num_u=0;
 int num_o=0;
 
 void mmap(){
-    uint32_t * infoAddr=temp;
+    uint32_t * infoAddr=(uint32_t *) *((uint32_t *)temp);
     uint32_t mmap_length=infoAddr[11];
     mem_node * mmap_addr=infoAddr[12];
 
@@ -32,7 +29,7 @@ void mmap(){
     mem_node_usable * nodes_u=((uint32_t) mmap_nodes_usable)-0xC0000000;
     mem_node * nodes_o=((uint32_t) mmap_nodes_other)-0xC0000000;
 
-    for(int i=iu=io=0;i<num;i++)
+    for(int i=0;i<num;i++)
     {
         if (mmap_addr[i].type==1)
         {
