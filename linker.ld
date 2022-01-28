@@ -20,6 +20,8 @@ SECTIONS
 	{
 		init_paging.o(*)
 		init_gdt.o(*)
+		mmap.o(*)
+		*(.init)
 	}
 
 

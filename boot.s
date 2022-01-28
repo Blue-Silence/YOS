@@ -1,7 +1,8 @@
 # Declare constants for the multiboot header.
 .set ALIGN,    1<<0             # align loaded modules on page boundaries
-.set MEMINFO,  1<<1             # provide memory map
-.set FLAGS,    ALIGN | MEMINFO  # this is the Multiboot 'flag' field
+.set MEMINFO,  1<<1
+.set MEMMAP,   1<<6             # provide memory map
+.set FLAGS,    ALIGN | MEMINFO | MEMMAP # this is the Multiboot 'flag' field
 .set MAGIC,    0x1BADB002       # 'magic number' lets bootloader find the header
 .set CHECKSUM, -(MAGIC + FLAGS) # checksum of above, to prove we are multiboot
 
@@ -25,11 +26,24 @@ stack_top:
 	.align 4096
 .global boot_page_directory
 .global boot_page_table1
+.global mmap_nodes_usable
+.global mmap_nodes_other
 boot_page_directory:
 	.skip 4096
 boot_page_table1:
 	.skip (4096*16)
 # Further page tables may be required if the kernel grows beyond 3 MiB.
+mmap_nodes_usable:
+	.skip (16*50) # Max 50 mmap_nodes
+mmap_nodes_other:
+	.skip (24*50) # Max 50 mmap_nodes
+
+
+.section .init, "aw", @nobits
+	.align 4096
+.global temp
+temp:
+	.skip 4096
 
 
 # The kernel entry point.
@@ -37,11 +51,17 @@ boot_page_table1:
 .global _start
 .type _start, @function
 _start:
+	mov $(stack_top - 0xC0000000), %esp
+	mov %ebx, $temp
+	call mmap
 
+
+# Start gdt init	
     mov $(stack_top - 0xC0000000), %esp
     call init_gdt
+# Finish gdt init
 
-	
+# Start paging init	
 	mov $(stack_top - 0xC0000000), %esp
     call init_paging
 
@@ -53,7 +73,7 @@ _start:
 	movl %cr0, %ecx
 	orl $0x80010000, %ecx
 	movl %ecx, %cr0
-
+# Finish paging init
 
 	# Jump to higher half with an absolute jump.
 	lea 4f, %ecx
