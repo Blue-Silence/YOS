@@ -1,23 +1,7 @@
 #include <stdint.h>
+#include "mem_info_type.h"
 
-typedef struct mem_node{
-    uint32_t size;
-    uint64_t base_addr;
-    uint64_t length;
-    uint32_t type;
-} __attribute__((packed)) mem_node;
-
-typedef struct mem_node_usable{
-    uint64_t base_addr;
-    uint64_t length;
-} __attribute__((packed)) mem_node_usable;
-
-extern uint8_t mmap_nodes_usable[];
-extern uint8_t mmap_nodes_other[];
 extern uint8_t temp[];
-
-int num_u=0;
-int num_o=0;
 
 void mmap(){
     uint32_t * infoAddr=(uint32_t *) *((uint32_t *)temp);
