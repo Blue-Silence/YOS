@@ -3,6 +3,9 @@
 
 extern uint8_t temp[];
 
+int num_u=0;
+int num_o=0;
+
 void mmap(){
     uint32_t * infoAddr=(uint32_t *) *((uint32_t *)temp);
     uint32_t mmap_length=infoAddr[11];

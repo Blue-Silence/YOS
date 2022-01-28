@@ -6,8 +6,6 @@
 extern uint8_t mmap_nodes_usable[];
 extern uint8_t mmap_nodes_other[];
 
-int num_u=0;
-int num_o=0;
 
 typedef struct mem_node{
     uint32_t size;
