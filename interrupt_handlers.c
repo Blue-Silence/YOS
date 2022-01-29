@@ -125,3 +125,7 @@ void isr_handler30(){
 void isr_handler31(){
     ;
 }
+
+void isr_handler255(){
+    terminal_writestring("Hello, kernel World!\n");
+}

@@ -37,7 +37,7 @@ isr\n:
 .endm
 
 # 用于有错误代码的中断
-%macro ISR_ERRCODE 1
+.macro ISR_ERRCODE n
 .global isr\n
 isr\n:
     cli                  # 关闭中断
@@ -86,6 +86,6 @@ ISR_NOERRCODE 255
 
 .global idt_flush
 idt_flush:
-    mov 4(%esp)+4, %eax  # 参数存入 eax 寄存器
-    lidt %eax        # 加载到 IDTR
+    mov 4(%esp), %eax  # 参数存入 eax 寄存器
+    lidt (%eax)        # 加载到 IDTR
     ret

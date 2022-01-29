@@ -119,7 +119,9 @@ typedef struct mem_node_usable{
 void kernel_main(void)
 {
 	/* Initialize terminal interface */
-	terminal_initialize();
+	init_idt();
+    terminal_initialize();
+
 
 	/* Newline support is left as an exercise. */
 	//terminal_writestring("Hello, kernel World!\n");
@@ -127,6 +129,7 @@ void kernel_main(void)
     putNum((uint64_t) num_o);
     putNum((uint64_t) num_u);
     mem_node_usable * ptr=mmap_nodes_usable;
+    asm("int $255");
     ptr++;
     putNum(ptr->base_addr);
     putNum(ptr->length);

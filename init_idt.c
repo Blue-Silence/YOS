@@ -1,3 +1,5 @@
+#include <stdint.h>
+
 typedef struct gate_descriptor{
     uint16_t offset_low;
     uint16_t segment_selector;
@@ -6,19 +8,58 @@ typedef struct gate_descriptor{
     uint16_t offset_high;
 } __attribute__((packed)) gate_descriptor_t;
 
-struct idt_ptr{
+typedef struct idt_ptr{
     uint16_t limit;     // 限长
     uint32_t base;      // 基址
 } __attribute__((packed)) idt_ptr_t;
 
-gate_descriptor idt[256];
+gate_descriptor_t idt[256];
 idt_ptr_t idt_ptr;
 
+void isr0();        // 0 #DE 除 0 异常
+void isr1();        // 1 #DB 调试异常
+void isr2();        // 2 NMI
+void isr3();        // 3 BP 断点异常
+void isr4();        // 4 #OF 溢出
+void isr5();        // 5 #BR 对数组的引用超出边界
+void isr6();        // 6 #UD 无效或未定义的操作码
+void isr7();        // 7 #NM 设备不可用(无数学协处理器)
+void isr8();        // 8 #DF 双重故障(有错误代码)
+void isr9();        // 9 协处理器跨段操作
+void isr10();       // 10 #TS 无效TSS(有错误代码)
+void isr11();       // 11 #NP 段不存在(有错误代码)
+void isr12();       // 12 #SS 栈错误(有错误代码)
+void isr13();       // 13 #GP 常规保护(有错误代码)
+void isr14();       // 14 #PF 页故障(有错误代码)
+void isr15();       // 15 CPU 保留
+void isr16();       // 16 #MF 浮点处理单元错误
+void isr17();       // 17 #AC 对齐检查
+void isr18();       // 18 #MC 机器检查
+void isr19();       // 19 #XM SIMD(单指令多数据)浮点异常
+
+// 20 ~ 31 Intel 保留
+void isr20();
+void isr21();
+void isr22();
+void isr23();
+void isr24();
+void isr25();
+void isr26();
+void isr27();
+void isr28();
+void isr29();
+void isr30();
+void isr31();
+
+// 32 ~ 255 用户自定义异常
+void isr255();
+
+
 void init_idt(){
-    idt_ptr.limit = sizeof(idt_entry_t) * 256 - 1;
-    idt_ptr.base  = (uint32_t)&idt_entries;
+    idt_ptr.limit = sizeof(gate_descriptor_t) * 256 - 1;
+    idt_ptr.base  = (uint32_t)idt;
     
-    bzero((uint8_t *)&idt_entries, sizeof(idt_entry_t) * 256);
+    //bzero((uint8_t *)idt, sizeof(gate_descriptor_t) * 256);
 
     // 0-32:  用于 CPU 的中断处理
     idt_set_gate( 0, (uint32_t)isr0,  0x08, 0x8E);
@@ -61,15 +102,15 @@ void init_idt(){
     idt_flush((uint32_t)&idt_ptr);
 }
 
-static void idt_set_gate(uint8_t num, uint32_t base, uint16_t sel, uint8_t flags)
+void idt_set_gate(uint8_t num, uint32_t base, uint16_t sel, uint8_t flags)
 {
-    idt_entries[num].base_lo = base & 0xFFFF;
-    idt_entries[num].base_hi = (base >> 16) & 0xFFFF;
+    idt[num].offset_low = base & 0xFFFF;
+    idt[num].offset_high = (base >> 16) & 0xFFFF;
 
-    idt_entries[num].sel     = sel;
-    idt_entries[num].always0 = 0;
+    idt[num].segment_selector= sel;
+    idt[num].reserved= 0;
 
     // 先留下 0x60 这个魔数，以后实现用户态时候
     // 这个与运算可以设置中断门的特权级别为 3
-    idt_entries[num].flags = flags;  // | 0x60
+    idt[num].type_0_dpl_p = flags;  // | 0x60
 }
