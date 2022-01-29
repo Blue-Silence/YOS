@@ -6,7 +6,6 @@
 extern mem_node_usable * mmap_nodes_usable[];
 extern mem_node * mmap_nodes_other[];
 
-
 typedef struct mem_node{
     uint32_t size;
     uint64_t base_addr;
