@@ -1,10 +1,12 @@
 #include <stdint.h>
-#include "mem_info_type.h"
+#include "mem_info.h"
+
+#define MEM_CHUNK_NUM
 
 extern uint8_t temp[];
 
-int num_u=0;
-int num_o=0;
+int mem_chunk_usable=0;
+int mem_chunk_other=0;
 
 void mmap(){
     uint32_t * infoAddr=(uint32_t *) *((uint32_t *)temp);
@@ -20,13 +22,13 @@ void mmap(){
     {
         if (mmap_addr[i].type==1)
         {
-            nodes_u[num_u].base_addr=mmap_addr[i].base_addr;
-            nodes_u[num_u].length=mmap_addr[i].length;
-            num_u++;
+            nodes_u[mem_chunk_usable].base_addr=mmap_addr[i].base_addr;
+            nodes_u[mem_chunk_usable].length=mmap_addr[i].length;
+            mem_chunk_usable++;
         }
         else 
-        {   nodes_o[num_o]=mmap_addr[i];
-            num_o++;
+        {   nodes_o[mem_chunk_other]=mmap_addr[i];
+            mem_chunk_other++;
         }
     }
 }

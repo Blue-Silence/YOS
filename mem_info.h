@@ -1,10 +1,10 @@
 #include <stdint.h>
 
-#ifndef MEM_INFO_TYPE_H
-#define MEM_INFO_TYPE_H
+#ifndef MEM_INFO_H
+#define MEM_INFO_H
 
-extern uint8_t mmap_nodes_usable[];
-extern uint8_t mmap_nodes_other[];
+extern mem_node_usable * mmap_nodes_usable[];
+extern mem_node * mmap_nodes_other[];
 
 
 typedef struct mem_node{
@@ -18,5 +18,15 @@ typedef struct mem_node_usable{
     uint64_t base_addr;
     uint64_t length;
 } __attribute__((packed)) mem_node_usable;
+
+#endif
+
+
+
+#ifndef MEM_CHUNK_NUM
+#define MEM_CHUNK_NUM
+
+extern int mem_chunk_usable;
+extern int mem_chunk_other;
 
 #endif
