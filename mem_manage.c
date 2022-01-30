@@ -1,24 +1,28 @@
 #include "mem_info.h"
 #include "mem_manage_info.h"
 
+
+extern uint8_t _kernel_end[];
+extern ptr_t boot_page_directory[];
+
 typedef struct mem_free_node_temp{
     ptr_t base_addr; //chunk start addr
     page_num_t length; //length by page numbers
 } __attribute__((packed)) mem_free_node_temp; //make sure this is no larger than mem_node_usable 
 
 
-mem_free_node * mem_free_node_head;
+//mem_free_node * mem_free_node_head;
+mem_chunk_head_t * mem_chunk_head;
 
 ptr_t heap_start;
 ptr_t heap_end;
 
 
 
-
-void memInfoLt_init(int freenode_num,mem_node * mem_nodes){
+//old
+/* void memInfoLt_init(int freenode_num,mem_node * mem_nodes){
     int page_needed=freenode_num*sizeof(mem_free_node)/page_size+1;
     ptr_t lt_pos;
-    int index;
 
     for(int i=0;i<freenode_num,i++)
     {   
@@ -26,7 +30,7 @@ void memInfoLt_init(int freenode_num,mem_node * mem_nodes){
         if (len>page_needed)
             {
                 (((mem_free_node_temp *) (mmap_nodes_usable+i)))->length=len-page_needed;
-                lt_pos=(ptr_t) mmap_nodes_usable[i].base_addr+page_size*len;
+                lt_pos=(ptr_t) (mmap_nodes_usable[i].base_addr)+page_size*len;
             }
         else 
             (((mem_free_node_temp *) (mmap_nodes_usable+i)))->length=len;
@@ -41,45 +45,94 @@ void memInfoLt_init(int freenode_num,mem_node * mem_nodes){
         ((mem_free_node * )lt_pos)[i].length=(((mem_free_node_temp *) (mmap_nodes_usable+i)))->length;
         ((mem_free_node * )lt_pos)[i].next=lt_pos+i+1;
     }
-}
-
-ptr_t getFreePage(int num,mem_free_node * head){
-    if (head==0) return 0;
-
-}
-
-
-
-
-//ptr_t kmalloc_in_pages(heap_page_t * page,uint32_t block_num)
-
-/*ptr_t kmalloc(size_t size,heapsize){
-    //Due to lack of info,use bitmap on the head of each page
-
-    uint32_t block_num=(size+sizeof(block_header_t))/block_size;
-    if ((size+sizeof(block_header_t))%block_size!=0)
-        block_num++;
-
-    heap_page_t * heap=(heap_page_t * ) heap_start;
-
-    ptr_t result=0;
-
-    for(i=0;i<heap_size;i++)
-    {
-        result=kmalloc_in_pages(heap+i,block_num);
-        if (reslut!=0) 
-            break;
-    }
-
-    return result;
-    
-}
-
- ptr_t kmalloc_in_pages(heap_page_t * page,uint32_t block_num){
-    page->
 } */
 
-ptr_t kmalloc(size_t size,length_t heapsize){
+ptr_t page_reg(ptr_t * table,ptr_t v_addr,ptr_t p_addr,uint32_t flag);
+//register virtual addr with physical addr;return 0 if page is assigned to topest table entry;return previous p_addr otherwise.
+
+
+void memInfoLt_and_heap_init(){
+    int page_needed=mem_chunk_usable*(sizeof(mem_chunk_head_t)+sizeof(mem_node_pair_t))/page_size+1 +1 ;
+    //                                                                                              put new pagetable.One should be enough for 50 chunks.
+
+    ptr_t lt_pos;
+    int index;
+
+    heap_start=heap_end=(((ptr_t) _kernel_end)/page_size+1)*page_size; //init heap with 0 space
+
+    for(int i=0;i<mem_chunk_usable,i++)
+    {   
+        ptr_t base_addr=mmap_nodes_usable[i].base_addr;
+        page_num_t len=mmap_nodes_usable[i].length/page_size;
+
+        if (len>page_needed)
+            {
+                index=i;
+
+                for(int i=0;i<page_needed;i++)
+                {
+                    if ( page_reg(boot_page_directory,heap_end,(base_addr+(len-i-1)*page_size,0x003)) == 0);
+                    {
+                        i++;
+                        if (i!=page_needed)
+                        {
+                            page_reg(boot_page_directory,heap_end,(ptr_t) (base_addr+(len-i-1)*page_size,0x003));
+                            heap_end+=page_size;
+                        }
+                    }
+                    else 
+                        heap_end+=page_size; //setup heap
+                }
+            }
+        
+        (((mem_free_node_temp *) (mmap_nodes_usable+i)))->length=len;
+        (((mem_free_node_temp *) (mmap_nodes_usable+i)))->base_addr=base_addr;
+    }
+    
+    mem_chunk_head=(mem_chunk_head_t * )kmalloc(mem_chunk_usable*(sizeof(mem_chunk_head_t)+sizeof(mem_node_pair_t)));
+    mem_node_pair_t * pairs=(mem_node_pair_t * ) (mem_chunk_head+mem_chunk_usable)
+    for(int i=0;i<mem_chunk_usable,i++)
+    {   
+        mem_chunk_head[i].base_addr=(((mem_free_node_temp *) (mmap_nodes_usable+i)))->base_addr;
+        mem_chunk_head[i].length=(((mem_free_node_temp *) (mmap_nodes_usable+i)))->length;
+        mem_chunk_head[i].pair_head=pairs+i;
+
+        pairs[i].avaliable=mem_chunk_head[i].length;
+        pairs[i].used=0;
+        pairs[i].next=NULL;
+    }
+
+    pairs[index].available=available-page_needed;
+    pairs[index].used=page_needed;
+}
+
+ptr_t page_reg(ptr_t * table,ptr_t v_addr,ptr_t p_addr,uint16_t flag){
+
+    int index1=v_addr/(page_size*1024);
+    ptr_t * table2=(ptr_t * ) ((table[index])&FFFFF000)
+    if (table[index]==NULL)
+    {
+        table[index]=p_addr+flag;
+        return 0;
+    }
+
+    int index2=(v_addr%(page_size*1024))/page_size;
+    ptr_t re=table2[index2];
+    table2[index2]=p_addr+flag;
+    return re;
+
+}
+
+
+
+
+ptr_t getFreePage_h(int num,mem_free_node * head){
+    if (head==0) return 0;
+    //TODO
+}
+
+
+ptr_t kmalloc(size_t size){
     uint32_t block_num=(size+sizeof(block_header_t))/block_size;
     if ((size+sizeof(block_header_t))%block_size!=0)
         block_num++;
@@ -105,3 +158,21 @@ ptr_t kmalloc(size_t size,length_t heapsize){
 
     return ((ptr_t) new_head)+sizeof(block_header_t);
 }
+
+int kfree(ptr_t free_ptr){
+    block_header_t * ptr=(block_header_t * ) heap_start;
+
+    while(1)
+    {
+        if (ptr==(block_header_t * ) heap_end)
+            return -1; //has been freed
+        if (ptr->next==((block_header_t * ) ((ptr_t) (free_ptr)-sizeof(block_header_t))))
+        {
+            ptr->next=(ptr->next)->next;
+            return 0;
+        }
+
+        ptr=ptr->next;  
+    }
+}
+
