@@ -15,7 +15,7 @@
 # Allocate the initial stack.
 .section .bootstrap_stack, "aw", @nobits
 stack_bottom:
-.skip 16384 # 16 KiB
+.skip 16384,0 # 16 KiB
 stack_top:
 
 # Preallocate pages used for paging. Don't hard-code addresses and assume they
@@ -28,21 +28,21 @@ stack_top:
 .global mmap_nodes_usable
 .global mmap_nodes_other
 boot_page_directory:
-	.skip 4096
+	.skip 4096,0
 boot_page_table1:
 	.skip (4096*16)
 # Further page tables may be required if the kernel grows beyond 3 MiB.
 mmap_nodes_usable:
-	.skip (16*50) # Max 50 mmap_nodes
+	.skip (16*50),0 # Max 50 mmap_nodes
 mmap_nodes_other:
-	.skip (24*50) # Max 50 mmap_nodes
+	.skip (24*50),0 # Max 50 mmap_nodes
 
 
 .section .init, "aw", @nobits
 	.align 4096
 .global temp
 temp:
-	.skip 4096
+	.skip 4096,0
 
 
 # The kernel entry point.
