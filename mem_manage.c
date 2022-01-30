@@ -89,6 +89,9 @@ void memInfoLt_and_heap_init(){
         (((mem_free_node_temp *) (mmap_nodes_usable+i)))->base_addr=base_addr;
     }
     
+    ((block_header_t * ) heap_start)->length=sizeof(block_header_t);
+    ((block_header_t * ) heap_start)->next=(block_header_t * ) heap_end; //set the first empty node
+
     mem_chunk_head=(mem_chunk_head_t * )kmalloc(mem_chunk_usable*(sizeof(mem_chunk_head_t)+sizeof(mem_node_pair_t)));
     mem_node_pair_t * pairs=(mem_node_pair_t * ) (mem_chunk_head+mem_chunk_usable)
     for(int i=0;i<mem_chunk_usable,i++)
@@ -117,8 +120,11 @@ ptr_t page_reg(ptr_t * table,ptr_t v_addr,ptr_t p_addr,uint16_t flag){
     }
 
     int index2=(v_addr%(page_size*1024))/page_size;
-    ptr_t re=table2[index2];
-    table2[index2]=p_addr+flag;
+    ptr_t * table2_mapped=map_physical(table2)
+    ptr_t re=table2_mapped[index2];
+    table2_mapped[index2]=p_addr+flag;
+    map_physical_free(table2_mapped);
+
     return re;
 
 }
@@ -144,9 +150,9 @@ ptr_t kmalloc(size_t size){
     {
         if (head_ptr==heap_end)
             break;
-        if (((uint32_t (head_ptr->next))-(uint32_t (head_ptr)))-(head_ptr->length)>=acc_size)
+        if ((((length_t) (head_ptr->next))-((ptr_t) head_ptr))-(head_ptr->length)>=acc_size)
         {
-            new_head=((block_header_t * ) ((ptr_t) head_ptr)+(head_ptr->length));
+            new_head=((block_header_t * ) (((ptr_t) head_ptr)+(head_ptr->length)));
             new_head->next = head_ptr->next;
             new_head->length = acc_size;
             (head_ptr->next)=new_head;
@@ -156,7 +162,7 @@ ptr_t kmalloc(size_t size){
         head_ptr=head_ptr->next;
     }
 
-    return ((ptr_t) new_head)+sizeof(block_header_t);
+    return (((ptr_t) new_head)+sizeof(block_header_t));
 }
 
 int kfree(ptr_t free_ptr){
@@ -166,7 +172,7 @@ int kfree(ptr_t free_ptr){
     {
         if (ptr==(block_header_t * ) heap_end)
             return -1; //has been freed
-        if (ptr->next==((block_header_t * ) ((ptr_t) (free_ptr)-sizeof(block_header_t))))
+        if (ptr->next==((block_header_t * ) (((ptr_t) free_ptr)-sizeof(block_header_t))))
         {
             ptr->next=(ptr->next)->next;
             return 0;
@@ -176,3 +182,16 @@ int kfree(ptr_t free_ptr){
     }
 }
 
+
+/* for now just map 4096*1022 tp p_addr.more work needed */
+extern ptr_t boot_page_table1[];
+ptr_t map_physical(ptr_t p_addr){
+
+    boot_page_table1[1022]=p_addr+0x003;
+    return 4096*1022;
+}
+
+int map_physical_free(ptr_t p_addr){
+    boot_page_table1[1022]=NULL;
+    return 0;
+}

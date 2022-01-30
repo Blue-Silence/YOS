@@ -7,10 +7,10 @@
 #define page_size 4096
 #define block_size 16 //minimum block acc by kmalloc
 
-typedef page_num_t uint32_t
-typedef ptr_t uint32_t
-typedef size_t uint32_t
-typedef length_t size_t
+typedef uint32_t page_num_t;
+typedef uint32_t ptr_t;
+typedef uint32_t size_t;
+typedef size_t length_t;
 
 
 typedef struct mem_free_node{
