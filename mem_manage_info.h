@@ -13,11 +13,11 @@ typedef uint32_t size_t;
 typedef size_t length_t;
 
 
-typedef struct mem_free_node{
+/* typedef struct mem_free_node{
     ptr_t base_addr; //chunk start addr
     page_num_t length; //length by page numbers
     mem_free_node * next; //point to next
-} __attribute__((packed)) mem_free_node;
+} __attribute__((packed)) mem_free_node; */
 
 
 
@@ -42,6 +42,7 @@ typedef struct block_header_t{
 typedef struct mem_chunk_head_t{
     ptr_t base_addr; //chunk start addr
     page_num_t length; //length by page numbers
+    page_num_t avaliable;
     mem_node_pair_t * pair_head;
 } __attribute__((packed)) mem_chunk_head_t;
 

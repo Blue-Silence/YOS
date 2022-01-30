@@ -129,13 +129,72 @@ ptr_t page_reg(ptr_t * table,ptr_t v_addr,ptr_t p_addr,uint16_t flag){
 
 }
 
+typedef struct getPage_info_t{
+    page_num_t length;
+    mem_node_pair_t * ptr;
+    ptr_t node_start;
+}getPage_info_t;
 
 
+ptr_t getFreePage(mem_chunk_head_t * ptr,int num){
+    ptr_t p=NULL;
+    for(i==0;i<num;i++)
+    {
+        if (ptr[i].available==0)
+            continue;
 
-ptr_t getFreePage_h(int num,mem_free_node * head){
-    if (head==0) return 0;
-    //TODO
+        (ptr[i].available)--;
+
+        if ((ptr[i].pair_head->next)->available==0)
+        {
+            mem_node_pair_t * t=(ptr[i].pair_head->next)->next;
+            (ptr[i].pair_head->used+=(ptr[i].pair_head->next)->used;
+            kfree(ptr[i].pair_head->next);
+            ptr[i].pair_head->next=t;
+        }//merge empty chunk
+
+        getPage_info_t t={.length=(ptr[i].pair_head)->available,.ptr=ptr[i].pair_head};
+        getPage_info_t x=getFreePage_h((ptr[i].pair_head)->next  ,  t  ,  ptr[i].base_addr+(page_size*((ptr[i].pair_head)->available+(ptr[i].pair_head)->used)));
+
+        x.ptr->used++;
+        x.ptr->available--;
+        p=x.node_start+(page_size*(x.ptr->available));
+        
+    }
+    return p;
 }
+
+
+getPage_info_t getFreePage_h(mem_node_pair_t * ptr,getPage_info_t x,ptr_t node_start){
+    if (ptr==NULL)
+        return x;
+
+    if ((ptr->next)->available==0)
+    {
+        mem_node_pair_t * t=(ptr->next)->next;
+        ptr->used+=(ptr->next)->used;
+        kfree(ptr->next);
+        ptr->next=t;
+    }//merge empty chunk
+
+    
+    if (ptr->length <= x.length)
+    {
+        getPage_info_t y={.length=ptr->length,.ptr=ptr,.node_start=node_start};
+        return getFreePage_h(ptr->next,y,node_start+(page_size*(ptr->available+ptr->used)));
+    }
+    else 
+        return getFreePage_h(one_ahead->next,x,node_start+(page_size*(ptr->available+ptr->used)));
+}
+
+
+
+
+
+
+
+
+
 
 
 ptr_t kmalloc(size_t size){
