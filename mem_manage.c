@@ -18,37 +18,14 @@ ptr_t heap_start;
 ptr_t heap_end;
 
 
-
-//old
-/* void memInfoLt_init(int freenode_num,mem_node * mem_nodes){
-    int page_needed=freenode_num*sizeof(mem_free_node)/page_size+1;
-    ptr_t lt_pos;
-
-    for(int i=0;i<freenode_num,i++)
-    {   
-        page_num_t len=mmap_nodes_usable[i].length/page_size;
-        if (len>page_needed)
-            {
-                (((mem_free_node_temp *) (mmap_nodes_usable+i)))->length=len-page_needed;
-                lt_pos=(ptr_t) (mmap_nodes_usable[i].base_addr)+page_size*len;
-            }
-        else 
-            (((mem_free_node_temp *) (mmap_nodes_usable+i)))->length=len;
-
-        (((mem_free_node_temp *) (mmap_nodes_usable+i)))->base_addr=mmap_nodes_usable[i].base_addr;
-    }
-    
-    mem_free_node_head=(mem_free_node * )lt_pos;
-    for(int i=0;i<freenode_num,i++)
-    {   
-        ((mem_free_node * )lt_pos)[i].base_addr=(((mem_free_node_temp *) (mmap_nodes_usable+i)))->base_addr;
-        ((mem_free_node * )lt_pos)[i].length=(((mem_free_node_temp *) (mmap_nodes_usable+i)))->length;
-        ((mem_free_node * )lt_pos)[i].next=lt_pos+i+1;
-    }
-} */
-
+void memInfoLt_and_heap_init();
 ptr_t page_reg(ptr_t * table,ptr_t v_addr,ptr_t p_addr,uint32_t flag);
 //register virtual addr with physical addr;return 0 if page is assigned to topest table entry;return previous p_addr otherwise.
+ptr_t getFreePage(mem_chunk_head_t * ptr,int num);
+ptr_t kmalloc(size_t size);
+int kfree(ptr_t free_ptr);
+ptr_t map_physical(ptr_t p_addr);
+int map_physical_free(ptr_t p_addr);
 
 
 void memInfoLt_and_heap_init(){
