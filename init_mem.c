@@ -1,4 +1,19 @@
 #include "mem_manage_info.h"
+#include "mem_info.h"
+
+extern uint8_t _kernel_end[];
+
+typedef struct mem_free_node_temp{
+    ptr_t base_addr; //chunk start addr
+    page_num_t length; //length by page numbers
+} __attribute__((packed)) mem_free_node_temp; //make sure this is no larger than mem_node_usable 
+
+
+extern ptr_t heap_start;
+extern ptr_t heap_end;
+
+
+
 void memInfoLt_and_heap_init(){
     size_t space_needed=mem_chunk_usable*sizeof(mem_chunk_head_t);
     ptr_t lt_pos;
