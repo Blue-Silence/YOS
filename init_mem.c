@@ -126,3 +126,14 @@ ptr_t kgetP(ptr_t v){
     return p2;
 }
 
+void init_cover_chunk(ptr_t from,ptr_t to){
+    while(1)
+    {
+        if (from>to)
+            break;
+
+        mem_table_level2_entry_t x={.addr=from,.pid=0,.flag=0b11};
+        set_physical_page_info(x,kgetP(from));
+        from+=page_size;
+    }
+}

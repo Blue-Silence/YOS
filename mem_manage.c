@@ -101,16 +101,16 @@ int map_physical_free(ptr_t p_addr){
     return 0;
 }
 
-mem_table_level1_entry_t set_physical_page_info(mem_table_level1_entry_t x,ptr_t v){
+mem_table_level1_entry_t set_physical_page_info(mem_table_level1_entry_t x,ptr_t p){
     mem_chunk_head_t * h=mem_chunk_head;
     while(1)
     {
-        if (h->last_addr>=v)
+        if (h->last_addr>=p)
             break;
         h=h->next;
     }
 
-    page_num_t i=(v-(h->base_addr))/page_size;
+    page_num_t i=(p-(h->base_addr))/page_size;
 
     level_one_entry_num_t x=i/level2_table_size;
     page_num_t index=i%level2_table_size;

@@ -53,7 +53,7 @@ typedef struct mem_table_level1_entry_t{
 
 
 typedef struct mem_table_level2_entry_t{
-    ptr_t * addr; //virtual addr of this page
+    ptr_t addr; //virtual addr of this page
     pid_t pid; //owner of this page 
     flag_t flag; 
 } __attribute__((packed)) mem_table_level2_entry_t;/
