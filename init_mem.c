@@ -11,6 +11,7 @@ typedef struct mem_free_node_temp{
 
 extern ptr_t heap_start;
 extern ptr_t heap_end;
+extern ptr_t boot_page_directory[];
 
 
 
@@ -117,4 +118,11 @@ void init_level1_table(mem_chunk_head * head){
     }
 }
 
-ptr_t kgetP(ptr_t v);
+ptr_t kgetP(ptr_t v){
+    ptr_t v1=boot_page_directory[v>>22];
+    ptr_t * p1=map_physical(v1);
+    ptr_t p2=p1[(v>>12)&0b1111111111];
+    map_physical_free(p1);
+    return p2;
+}
+

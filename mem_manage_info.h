@@ -20,38 +20,12 @@ typedef uint32_t level_one_entry_num_t;
 typedef size_t length_t;
 
 
-/* typedef struct mem_free_node{
-    ptr_t base_addr; //chunk start addr
-    page_num_t length; //length by page numbers
-    mem_free_node * next; //point to next
-} __attribute__((packed)) mem_free_node; */
-
-
-
-/* typedef struct heap_page_t{
-    uint8_t bitMap[32]; 
-    block_t[256-2]; 
-} __attribute__((packed)) heap_page_t;
-
-typedef struct block_t{
-    uint8_t none[16] ;//making 16 bytes
-} __attribute__((packed)) block_t;
-
-//above two highly depend on page_size and block_size */
-
 typedef struct block_header_t{
     length_t length; //length
     block_header_t * next; //point to next
 } __attribute__((packed)) block_header_t;
 
 
-
-/* typedef struct mem_chunk_head_t{
-    ptr_t base_addr; //chunk start addr
-    page_num_t length; //length by page numbers
-    page_num_t avaliable;
-    mem_node_pair_t * pair_head;
-} __attribute__((packed)) mem_chunk_head_t; */
 
 typedef struct mem_node_pair_t{
     page_num_t avaliable; //length by page numbers
@@ -84,7 +58,7 @@ typedef struct mem_table_level2_entry_t{
     flag_t flag; 
 } __attribute__((packed)) mem_table_level2_entry_t;/
 /*flag:
-    0:set if the page does exit;
+    0:set if the page does exist;
     1:set if the page was acced;
     2:set if it is a shared page;
     rest are reserved;
