@@ -25,14 +25,6 @@ typedef struct block_header_t{
     block_header_t * next; //point to next
 } __attribute__((packed)) block_header_t;
 
-
-
-typedef struct mem_node_pair_t{
-    page_num_t avaliable; //length by page numbers
-    page_num_t used;
-    mem_node_pair_t * next; //point to next
-} __attribute__((packed)) mem_node_pair_t;
-
 typedef struct mem_chunk_head_t{
     ptr_t base_addr; //chunk start addr
     page_num_t length; //length by page numbers
@@ -63,6 +55,12 @@ typedef struct mem_table_level2_entry_t{
     2:set if it is a shared page;
     rest are reserved;
 */
+
+
+typedef struct page_get_t{
+    flag_t avaliable_bit; //length by page numbers
+    ptr_t p;
+} __attribute__((packed)) page_get_t;
 
 #endif
 

@@ -13,7 +13,7 @@ extern ptr_t heap_start;
 extern ptr_t heap_end;
 extern ptr_t boot_page_directory[];
 
-
+void memInfoLt_and_heap_init();
 
 void memInfoLt_and_heap_init(){
     size_t space_needed=mem_chunk_usable*sizeof(mem_chunk_head_t);
@@ -63,9 +63,6 @@ void memInfoLt_and_heap_init(){
     ((block_header_t * ) heap_start)->length=sizeof(block_header_t);
     ((block_header_t * ) heap_start)->next=(block_header_t * ) heap_end; //set the first empty node
 
-    mem_chunk_head=(mem_chunk_head_t * )kmalloc(mem_chunk_usable*(sizeof(mem_chunk_head_t)+sizeof(mem_node_pair_t)));
-    mem_node_pair_t * pairs=(mem_node_pair_t * ) (mem_chunk_head+mem_chunk_usable)
-
     mem_chunk_head_t * next=NULL;
     for(int i=mem_chunk_usable-1;i>=0,i--)
     {   
@@ -75,7 +72,7 @@ void memInfoLt_and_heap_init(){
             num++;//level1 table entry num
         page_num_t len=((mem_free_node_temp *) (mmap_nodes_usable+i))->length;
 
-        mem_chunk_head=(mem_chunk_head_t * )kmalloc(sizeof(mem_chunk_head_t)+num*(sizeof(mem_node_pair_t)));
+        mem_chunk_head=(mem_chunk_head_t * )kmalloc(sizeof(mem_chunk_head_t)+num*(sizeof(mem_table_level1_entry_t)));
 
 
         mem_chunk_head->base_addr=(((mem_free_node_temp *) (mmap_nodes_usable+i)))->base_addr;
