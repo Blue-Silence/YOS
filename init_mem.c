@@ -17,10 +17,14 @@ extern mem_chunk_head_t * mem_chunk_head;
 
 void memInfoLt_and_heap_init();
 
+void init_cover_chunk(ptr_t from,ptr_t to);
+void init_level1_table(mem_chunk_head_t * head);
+ptr_t kgetP(ptr_t v);
+
+
 void memInfoLt_and_heap_init(){
     size_t space_needed=mem_chunk_usable*sizeof(mem_chunk_head_t);
 
-    int index;
     for(int i=0;i<mem_chunk_usable;i++)
     {   
         level_one_entry_num_t num=(mmap_nodes_usable[i].length/page_size)/level2_table_size;
@@ -40,7 +44,6 @@ void memInfoLt_and_heap_init(){
 
         if (len>page_needed)
             {
-                index=i;
 
                 for(int i=0;(page_num_t) i<page_needed;i++)
                 {
@@ -49,7 +52,7 @@ void memInfoLt_and_heap_init(){
                         i++;
                         if ((page_num_t) i!=page_needed)
                         {
-                            page_reg(boot_page_directory,heap_end,(ptr_t) (base_addr+(len-i-1)*page_size,0x003));
+                            page_reg(boot_page_directory,heap_end,(ptr_t) (base_addr+(len-i-1)*page_size),0x003);
                             heap_end+=page_size;
                         }
                     }
@@ -87,9 +90,6 @@ void memInfoLt_and_heap_init(){
         init_level1_table(mem_chunk_head);
 
         next=mem_chunk_head;
-
-        if (i==index)
-            init_remove_help(mem_chunk_head,page_needed) ;//mark preacc heap page 
     }
 
     init_cover_chunk(0x00400000,0x00400000-page_size);
@@ -100,7 +100,7 @@ void init_level1_table(mem_chunk_head_t * head){
     page_num_t len=head->length;
     level_one_entry_num_t num=head->entry_num;
     mem_table_level1_entry_t * table1=(mem_table_level1_entry_t * ) (((ptr_t) head)+sizeof(mem_chunk_head_t));
-    for(int i=0;i<num;i++)
+    for(int i=0;(level_one_entry_num_t) i<num;i++)
     {   
         mem_table_level2_entry_t * p=table1[i].level2_table=(mem_table_level2_entry_t * ) kmalloc(level2_table_size*sizeof(mem_table_level2_entry_t));
         for(int j=0;j<1023;j++)
@@ -119,9 +119,9 @@ void init_level1_table(mem_chunk_head_t * head){
 
 ptr_t kgetP(ptr_t v){
     ptr_t v1=boot_page_directory[v>>22];
-    ptr_t * p1=map_physical(v1);
+    ptr_t * p1=(ptr_t * ) map_physical(v1);
     ptr_t p2=p1[(v>>12)&0b1111111111];
-    map_physical_free(p1);
+    map_physical_free((ptr_t) p1);
     return p2;
 }
 
