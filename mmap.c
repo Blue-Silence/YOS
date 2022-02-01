@@ -15,8 +15,8 @@ void mmap(){
 
     uint32_t num=mmap_length/sizeof(mem_node);
     
-    mem_node_usable * nodes_u=((uint32_t) mmap_nodes_usable)-0xC0000000;
-    mem_node * nodes_o=((uint32_t) mmap_nodes_other)-0xC0000000;
+    mem_node_usable * nodes_u=(mem_node_usable * ) (((uint32_t) mmap_nodes_usable)-0xC0000000);
+    mem_node * nodes_o=(mem_node_usable * ) (((uint32_t) mmap_nodes_other)-0xC0000000);
 
     for(int i=0;i<num;i++)
     {

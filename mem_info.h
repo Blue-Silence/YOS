@@ -3,8 +3,6 @@
 #ifndef MEM_INFO_H
 #define MEM_INFO_H
 
-extern mem_node_usable * mmap_nodes_usable[];
-extern mem_node * mmap_nodes_other[];
 
 typedef struct mem_node{
     uint32_t size;
@@ -17,6 +15,9 @@ typedef struct mem_node_usable{
     uint64_t base_addr;
     uint64_t length;
 } __attribute__((packed)) mem_node_usable;
+
+extern mem_node_usable * mmap_nodes_usable[];
+extern mem_node * mmap_nodes_other[];
 
 #endif
 
