@@ -1,7 +1,9 @@
 #include <stddef.h>
 #include <stdbool.h>
 #include "mem_info.h"
+#include "mem_manage.h"
 #include "mem_manage_info.h"
+
 
 
 
@@ -11,23 +13,6 @@ mem_chunk_head_t * mem_chunk_head;
 
 ptr_t heap_start;
 ptr_t heap_end;
-
-
-
-ptr_t page_reg(ptr_t * table,ptr_t v_addr,ptr_t p_addr,uint16_t flag);
-//register virtual addr with physical addr;return 0 if page is assigned to topest table entry;return previous p_addr otherwise.
-
-page_get_t get_page(mem_chunk_head_t * p); //get physical page
-int free_page(ptr_t p); //free physical page
-
-ptr_t kmalloc(size_t size);
-int kfree(ptr_t free_ptr);
-
-ptr_t map_physical(ptr_t p_addr);
-int map_physical_free(ptr_t p_addr);
-
-mem_table_level2_entry_t set_physical_page_info(mem_table_level2_entry_t x,ptr_t p);
-//set level2 tabel entry for physical page p to x
 
 
 ptr_t page_reg(ptr_t * table,ptr_t v_addr,ptr_t p_addr,uint16_t flag){
@@ -130,8 +115,15 @@ mem_table_level2_entry_t set_physical_page_info(mem_table_level2_entry_t x,ptr_t
 }
 
 
-page_get_t get_page_h(mem_table_level1_entry_t * p);
-page_get_t get_page(mem_chunk_head_t * p){
+page_get_t get_free_page_h(mem_table_level1_entry_t * p);
+page_get_t get_free_page(mem_chunk_head_t * p);
+
+page_get_t get_page(){
+    return get_free_page(mem_chunk_head);
+}
+
+
+page_get_t get_free_page(mem_chunk_head_t * p){
     page_get_t x={.available_bit=false};
     
     if (p==NULL)
@@ -141,7 +133,7 @@ page_get_t get_page(mem_chunk_head_t * p){
     mem_table_level1_entry_t * table1=(mem_table_level1_entry_t * ) (((ptr_t) p)+sizeof(mem_chunk_head_t));
     for(int i=0;i<(p->entry_num);i++)
     {
-        x=get_page_h(table1+i);
+        x=get_free_page_h(table1+i);
         if (x.available_bit==true)
         {
             p->available--;
@@ -150,10 +142,10 @@ page_get_t get_page(mem_chunk_head_t * p){
         }    
     }
     p->available=0;
-    return get_page(p->next);
+    return get_free_page(p->next);
 }
 
-page_get_t get_page_h(mem_table_level1_entry_t * p){
+page_get_t get_free_page_h(mem_table_level1_entry_t * p){
     page_get_t x={.available_bit=false};
     if (((p->flag)&(1<<0)) == 0)
         return x;
