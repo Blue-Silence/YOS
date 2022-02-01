@@ -1,3 +1,5 @@
+#include <stddef.h>
+#include <stdbool.h>
 #include "mem_info.h"
 #include "mem_manage_info.h"
 
@@ -12,7 +14,7 @@ ptr_t heap_end;
 
 
 
-ptr_t page_reg(ptr_t * table,ptr_t v_addr,ptr_t p_addr,uint32_t flag);
+ptr_t page_reg(ptr_t * table,ptr_t v_addr,ptr_t p_addr,uint16_t flag);
 //register virtual addr with physical addr;return 0 if page is assigned to topest table entry;return previous p_addr otherwise.
 
 page_get_t get_page(mem_chunk_head_t * p); //get physical page
@@ -24,25 +26,25 @@ int kfree(ptr_t free_ptr);
 ptr_t map_physical(ptr_t p_addr);
 int map_physical_free(ptr_t p_addr);
 
-mem_table_level1_entry_t set_physical_page_info(mem_table_level1_entry_t x,ptr_t p);
+mem_table_level2_entry_t set_physical_page_info(mem_table_level2_entry_t x,ptr_t p);
 //set level2 tabel entry for physical page p to x
 
 
 ptr_t page_reg(ptr_t * table,ptr_t v_addr,ptr_t p_addr,uint16_t flag){
 
     int index1=v_addr/(page_size*1024);
-    ptr_t * table2=(ptr_t * ) ((table[index])&FFFFF000)
-    if (table[index]==NULL)
+    ptr_t * table2=(ptr_t * ) ((table[index1])&0xFFFFF000);
+    if (table[index1]==(ptr_t) NULL)
     {
-        table[index]=p_addr+flag;
+        table[index1]=p_addr+flag;
         return 0;
     }
 
     int index2=(v_addr%(page_size*1024))/page_size;
-    ptr_t * table2_mapped=map_physical(table2)
+    ptr_t * table2_mapped=(ptr_t * ) map_physical((ptr_t) table2);
     ptr_t re=table2_mapped[index2];
     table2_mapped[index2]=p_addr+flag;
-    map_physical_free(table2_mapped);
+    map_physical_free((ptr_t) table2_mapped);
 
     return re;
 
@@ -60,7 +62,7 @@ ptr_t kmalloc(size_t size){
     block_header_t * new_head=0;
     while(1)
     {
-        if (head_ptr==heap_end)
+        if (head_ptr==(block_header_t * ) heap_end)
             break;
         if ((((length_t) (head_ptr->next))-((ptr_t) head_ptr))-(head_ptr->length)>=acc_size)
         {
@@ -104,11 +106,11 @@ ptr_t map_physical(ptr_t p_addr){
 }
 
 int map_physical_free(ptr_t p_addr){
-    boot_page_table1[1022]=NULL;
+    boot_page_table1[1022]=(ptr_t) NULL;
     return 0;
 }
 
-mem_table_level1_entry_t set_physical_page_info(mem_table_level1_entry_t x,ptr_t p){
+mem_table_level2_entry_t set_physical_page_info(mem_table_level2_entry_t x,ptr_t p){
     mem_chunk_head_t * h=mem_chunk_head;
     while(1)
     {
@@ -119,30 +121,31 @@ mem_table_level1_entry_t set_physical_page_info(mem_table_level1_entry_t x,ptr_t
 
     page_num_t i=(p-(h->base_addr))/page_size;
 
-    level_one_entry_num_t x=i/level2_table_size;
+    level_one_entry_num_t n=i/level2_table_size;
     page_num_t index=i%level2_table_size;
-    mem_table_level1_entry_t * table1=(mem_table_level1_entry_t * ) ((ptr_t) h +sizeof(mem_chunk_head_t))
-    mem_table_level1_entry_t y=(table1[x].level2_table)[index];
-    (table1[x].level2_table)[index]=x;
+    mem_table_level1_entry_t * table1=(mem_table_level1_entry_t * ) ((ptr_t) h +sizeof(mem_chunk_head_t));
+    mem_table_level2_entry_t y=(table1[n].level2_table)[index];
+    (table1[n].level2_table)[index]=x;
     return y;
 }
 
 
 page_get_t get_page_h(mem_table_level1_entry_t * p);
 page_get_t get_page(mem_chunk_head_t * p){
-    page_get_t x={.avaliable_bit=false};
+    page_get_t x={.available_bit=false};
     
-    if (p==MULL)
+    if (p==NULL)
         return x;
     if (p->available==0)
         return x;
     mem_table_level1_entry_t * table1=(mem_table_level1_entry_t * ) (((ptr_t) p)+sizeof(mem_chunk_head_t));
     for(int i=0;i<(p->entry_num);i++)
     {
-        x=get_page_h(p+i);
-        if (x.available==true)
+        x=get_page_h(table1+i);
+        if (x.available_bit==true)
         {
             p->available--;
+            x.p+=(p->base_addr+i*level2_table_size*page_size);
             return x;
         }    
     }
@@ -151,22 +154,22 @@ page_get_t get_page(mem_chunk_head_t * p){
 }
 
 page_get_t get_page_h(mem_table_level1_entry_t * p){
-    page_get_t x={.avaliable_bit=false};
-    if ((p->flag)&(1<<0) == 0)
+    page_get_t x={.available_bit=false};
+    if (((p->flag)&(1<<0)) == 0)
         return x;
     for(int i=0;i<level2_table_size;i++)
     {
-        flag_t f=(x.level2_table)[i].flag;
-        if ((f&(1<<0) == 0))
+        flag_t f=(p->level2_table)[i].flag;
+        if (((f&(1<<0)) == 0))
         {
             (p->flag)=(p->flag)-1;
             return x;
 
         }
             
-        if (f&(1<<1) == 0)
+        if ((f&(1<<1)) == 0)
         {
-            x.flag=true;
+            x.available_bit=true;
             x.p=page_size*i;
             return x;
         }
@@ -176,8 +179,8 @@ page_get_t get_page_h(mem_table_level1_entry_t * p){
     return x;
 }
 int free_page(ptr_t p){
-    mem_table_level2_entry_t x={.addr=NULL,pid=0,flag=1};
-    set_physical_page_info(mem_table_level1_entry_t x,p);
+    mem_table_level2_entry_t x={.addr=NULL,.pid=0,.flag=1};
+    set_physical_page_info(x,p);
     return 0;
 }
 

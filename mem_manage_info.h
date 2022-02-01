@@ -22,33 +22,23 @@ typedef size_t length_t;
 
 typedef struct block_header_t{
     length_t length; //length
-    block_header_t * next; //point to next
+    struct block_header_t * next; //point to next
 } __attribute__((packed)) block_header_t;
 
 typedef struct mem_chunk_head_t{
     ptr_t base_addr; //chunk start addr
     page_num_t length; //length by page numbers
     ptr_t last_addr;
-    page_num_t avaliable;
+    page_num_t available;
     level_one_entry_num_t entry_num;//entry num for the level 1 table
-    mem_chunk_head_t * next;
+    struct mem_chunk_head_t * next;
 } __attribute__((packed)) mem_chunk_head_t;//followed by level 1 table with entry_num entries
-
-typedef struct mem_table_level1_entry_t{
-    mem_table_level2_entry_t * level2_table; 
-    flag_t flag; 
-} __attribute__((packed)) mem_table_level1_entry_t;/
-/*flag:
-    0:set if there're pages left;
-    rest are reserved;
-*/
-
 
 typedef struct mem_table_level2_entry_t{
     ptr_t addr; //virtual addr of this page
     pid_t pid; //owner of this page 
     flag_t flag; 
-} __attribute__((packed)) mem_table_level2_entry_t;/
+} __attribute__((packed)) mem_table_level2_entry_t;
 /*flag:
     0:set if the page does exist;
     1:set if the page was acced;
@@ -56,9 +46,17 @@ typedef struct mem_table_level2_entry_t{
     rest are reserved;
 */
 
+typedef struct mem_table_level1_entry_t{
+    mem_table_level2_entry_t * level2_table;
+    flag_t flag;
+} __attribute__((packed)) mem_table_level1_entry_t;
+/*flag:
+    0:set if there're pages left;
+    rest are reserved;
+*/
 
 typedef struct page_get_t{
-    flag_t avaliable_bit; //length by page numbers
+    flag_t available_bit; //length by page numbers
     ptr_t p;
 } __attribute__((packed)) page_get_t;
 
