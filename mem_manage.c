@@ -131,7 +131,7 @@ page_get_t get_free_page(mem_chunk_head_t * p){
     if (p->available==0)
         return x;
     mem_table_level1_entry_t * table1=(mem_table_level1_entry_t * ) (((ptr_t) p)+sizeof(mem_chunk_head_t));
-    for(int i=0;i<(p->entry_num);i++)
+    for(int i=0;(level_one_entry_num_t) i<(p->entry_num);i++)
     {
         x=get_free_page_h(table1+i);
         if (x.available_bit==true)
@@ -171,7 +171,7 @@ page_get_t get_free_page_h(mem_table_level1_entry_t * p){
     return x;
 }
 int free_page(ptr_t p){
-    mem_table_level2_entry_t x={.addr=NULL,.pid=0,.flag=1};
+    mem_table_level2_entry_t x={.addr=(ptr_t) NULL,.pid=0,.flag=1};
     set_physical_page_info(x,p);
     return 0;
 }
