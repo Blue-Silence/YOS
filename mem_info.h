@@ -16,8 +16,8 @@ typedef struct mem_node_usable{
     uint64_t length;
 } __attribute__((packed)) mem_node_usable;
 
-extern mem_node_usable * mmap_nodes_usable[];
-extern mem_node * mmap_nodes_other[];
+extern mem_node_usable mmap_nodes_usable[];
+extern mem_node mmap_nodes_other[];
 
 #endif
 

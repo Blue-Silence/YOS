@@ -1,3 +1,4 @@
+#include <stddef.h>
 #include "mem_manage_info.h"
 #include "mem_info.h"
 
@@ -12,26 +13,27 @@ typedef struct mem_free_node_temp{
 extern ptr_t heap_start;
 extern ptr_t heap_end;
 extern ptr_t boot_page_directory[];
+extern mem_chunk_head_t * mem_chunk_head;
 
 void memInfoLt_and_heap_init();
 
 void memInfoLt_and_heap_init(){
     size_t space_needed=mem_chunk_usable*sizeof(mem_chunk_head_t);
-    ptr_t lt_pos;
+
     int index;
-    for(int i=0;i<mem_chunk_usable,i++)
+    for(int i=0;i<mem_chunk_usable;i++)
     {   
         level_one_entry_num_t num=(mmap_nodes_usable[i].length/page_size)/level2_table_size;
         if ((mmap_nodes_usable[i].length/page_size)%level2_table_size!=0)
             num++;
-        space_needed+=num*(sizeof(mem_table_level1_entry_t)+level2_table_size*(mem_table_level2_entry_t))
+        space_needed+=num*( sizeof(mem_table_level1_entry_t) + level2_table_size*sizeof(mem_table_level2_entry_t) );
     }
 
     page_num_t page_needed=space_needed/page_size+1 +4;
 //                                                 put new pagetable.4 should be enough.
     heap_start=heap_end=(((ptr_t) _kernel_end)/page_size+1)*page_size; //init heap with 0 space
 
-    for(int i=0;i<mem_chunk_usable,i++)
+    for(int i=0;i<mem_chunk_usable;i++)
     {   
         ptr_t base_addr=mmap_nodes_usable[i].base_addr;
         page_num_t len=mmap_nodes_usable[i].length/page_size;
@@ -40,12 +42,12 @@ void memInfoLt_and_heap_init(){
             {
                 index=i;
 
-                for(int i=0;i<page_needed;i++)
+                for(int i=0;(page_num_t) i<page_needed;i++)
                 {
-                    if ( page_reg(boot_page_directory,heap_end,(base_addr+(len-i-1)*page_size,0x003)) == 0);
+                    if ( page_reg(boot_page_directory,heap_end,(base_addr+(len-i-1)*page_size),0x003) == 0)
                     {
                         i++;
-                        if (i!=page_needed)
+                        if ((page_num_t) i!=page_needed)
                         {
                             page_reg(boot_page_directory,heap_end,(ptr_t) (base_addr+(len-i-1)*page_size,0x003));
                             heap_end+=page_size;
@@ -64,10 +66,10 @@ void memInfoLt_and_heap_init(){
     ((block_header_t * ) heap_start)->next=(block_header_t * ) heap_end; //set the first empty node
 
     mem_chunk_head_t * next=NULL;
-    for(int i=mem_chunk_usable-1;i>=0,i--)
+    for(int i=mem_chunk_usable-1;i>=0;i--)
     {   
 
-        level_one_entry_num_t num=(((((mem_free_node_temp *) (mmap_nodes_usable+i)))->length)/level2_table_size;
+        level_one_entry_num_t num=((((mem_free_node_temp *) (mmap_nodes_usable+i)))->length)/level2_table_size;
         if (((((mem_free_node_temp *) (mmap_nodes_usable+i)))->length)%level2_table_size!=0)
             num++;//level1 table entry num
         page_num_t len=((mem_free_node_temp *) (mmap_nodes_usable+i))->length;
@@ -91,19 +93,19 @@ void memInfoLt_and_heap_init(){
     }
 
     init_cover_chunk(0x00400000,0x00400000-page_size);
-    init_cover_chunk(0x00400000+0xC0000000,heap_end-page_size)
+    init_cover_chunk(0x00400000+0xC0000000,heap_end-page_size);
 } 
 
-void init_level1_table(mem_chunk_head * head){
+void init_level1_table(mem_chunk_head_t * head){
     page_num_t len=head->length;
     level_one_entry_num_t num=head->entry_num;
     mem_table_level1_entry_t * table1=(mem_table_level1_entry_t * ) (((ptr_t) head)+sizeof(mem_chunk_head_t));
     for(int i=0;i<num;i++)
     {   
         mem_table_level2_entry_t * p=table1[i].level2_table=(mem_table_level2_entry_t * ) kmalloc(level2_table_size*sizeof(mem_table_level2_entry_t));
-        for(j=0;j<1023;j++)
+        for(int j=0;j<1023;j++)
         {
-            p[j].addr=NULL;
+            p[j].addr=(ptr_t) NULL;
             p[j].pid=0;
             p[j].flag=0;
             if (len>0)
