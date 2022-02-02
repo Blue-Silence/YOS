@@ -119,11 +119,11 @@ void init_level1_table(mem_chunk_head_t * head){
 }
 
 ptr_t kgetP(ptr_t v){
-    ptr_t v1=boot_page_directory[v>>22];
+    ptr_t v1=(boot_page_directory[v>>22])&0xFFFFF000;
     ptr_t * p1=(ptr_t * ) map_physical(v1);
     ptr_t p2=p1[(v>>12)&0b1111111111];
     map_physical_free((ptr_t) p1);
-    return p2;
+    return p2&0xFFFFF000;
 }
 
 void init_cover_chunk(ptr_t from,ptr_t to){
