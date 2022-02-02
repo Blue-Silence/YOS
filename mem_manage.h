@@ -41,7 +41,7 @@ int kfree(ptr_t free_ptr);
 ptr_t map_physical(ptr_t p_addr);
 int map_physical_free(ptr_t p_addr);
 
-mem_table_level2_entry_t set_physical_page_info(mem_table_level2_entry_t x,ptr_t p);
-//set level2 tabel entry for physical page p to x
+mem_table_level2_entry_t * find_physical_page_info(ptr_t p);
+//return a ptr  poingting to level2 tabel entry for physical page p
 
 #endif

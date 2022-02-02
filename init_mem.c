@@ -30,7 +30,7 @@ void memInfoLt_and_heap_init(){
         level_one_entry_num_t num=(mmap_nodes_usable[i].length/page_size)/level2_table_size;
         if ((mmap_nodes_usable[i].length/page_size)%level2_table_size!=0)
             num++;
-        space_needed+=num*( sizeof(mem_table_level1_entry_t) + level2_table_size*sizeof(mem_table_level2_entry_t) );
+        space_needed+=( sizeof(mem_table_level1_entry_t) + num*level2_table_size*sizeof(mem_table_level2_entry_t) );
     }
 
     page_num_t page_needed=space_needed/page_size+1 +4;
@@ -102,8 +102,9 @@ void init_level1_table(mem_chunk_head_t * head){
     mem_table_level1_entry_t * table1=(mem_table_level1_entry_t * ) (((ptr_t) head)+sizeof(mem_chunk_head_t));
     for(int i=0;(level_one_entry_num_t) i<num;i++)
     {   
+        table1[i].flag=1;
         mem_table_level2_entry_t * p=table1[i].level2_table=(mem_table_level2_entry_t * ) kmalloc(level2_table_size*sizeof(mem_table_level2_entry_t));
-        for(int j=0;j<1023;j++)
+        for(int j=0;j<1024;j++)
         {
             p[j].addr=(ptr_t) NULL;
             p[j].pid=0;
@@ -132,7 +133,7 @@ void init_cover_chunk(ptr_t from,ptr_t to){
             break;
 
         mem_table_level2_entry_t x={.addr=from,.pid=0,.flag=0b11};
-        set_physical_page_info(x,kgetP(from));
+        *(find_physical_page_info(kgetP(from)))=x;
         from+=page_size;
     }
 }

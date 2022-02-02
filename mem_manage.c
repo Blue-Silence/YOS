@@ -95,26 +95,6 @@ int map_physical_free(ptr_t p_addr){
     return 0;
 }
 
-mem_table_level2_entry_t set_physical_page_info(mem_table_level2_entry_t x,ptr_t p){
-    mem_chunk_head_t * h=mem_chunk_head;
-    while(1)
-    {
-        if (h->last_addr>=p)
-            break;
-        h=h->next;
-    }
-
-    page_num_t i=(p-(h->base_addr))/page_size;
-
-    level_one_entry_num_t n=i/level2_table_size;
-    page_num_t index=i%level2_table_size;
-    mem_table_level1_entry_t * table1=(mem_table_level1_entry_t * ) ((ptr_t) h +sizeof(mem_chunk_head_t));
-    mem_table_level2_entry_t y=(table1[n].level2_table)[index];
-    (table1[n].level2_table)[index]=x;
-    return y;
-}
-
-
 page_get_t get_free_page_h(mem_table_level1_entry_t * p);
 page_get_t get_free_page(mem_chunk_head_t * p);
 
@@ -129,7 +109,7 @@ page_get_t get_free_page(mem_chunk_head_t * p){
     if (p==NULL)
         return x;
     if (p->available==0)
-        return x;
+        return get_free_page(p->next);
     mem_table_level1_entry_t * table1=(mem_table_level1_entry_t * ) (((ptr_t) p)+sizeof(mem_chunk_head_t));
     for(int i=0;(level_one_entry_num_t) i<(p->entry_num);i++)
     {
@@ -163,6 +143,7 @@ page_get_t get_free_page_h(mem_table_level1_entry_t * p){
         {
             x.available_bit=true;
             x.p=page_size*i;
+            (p->level2_table)[i].flag=f|0b10;
             return x;
         }
     }
@@ -170,9 +151,43 @@ page_get_t get_free_page_h(mem_table_level1_entry_t * p){
     (p->flag)=(p->flag)-1;
     return x;
 }
+
 int free_page(ptr_t p){
     mem_table_level2_entry_t x={.addr=(ptr_t) NULL,.pid=0,.flag=1};
-    set_physical_page_info(x,p);
+
+    mem_chunk_head_t * h=mem_chunk_head;
+    while(1)
+    {
+        if (h->last_addr>=p)
+            break;
+        h=h->next;
+    }
+
+    h->available++;
+
+    page_num_t i=(p-(h->base_addr))/page_size;
+
+    level_one_entry_num_t n=i/level2_table_size;
+    page_num_t index=i%level2_table_size;
+    mem_table_level1_entry_t * table1=(mem_table_level1_entry_t * ) ((ptr_t) h +sizeof(mem_chunk_head_t));
+    table1[n].flag=1;
+    (table1[n].level2_table)[index]=x;
     return 0;
 }
 
+mem_table_level2_entry_t * find_physical_page_info(ptr_t p){
+    mem_chunk_head_t * h=mem_chunk_head;
+    while(1)
+    {
+        if (h->last_addr>=p)
+            break;
+        h=h->next;
+    }
+
+    page_num_t i=(p-(h->base_addr))/page_size;
+
+    level_one_entry_num_t n=i/level2_table_size;
+    page_num_t index=i%level2_table_size;
+    mem_table_level1_entry_t * table1=(mem_table_level1_entry_t * ) ((ptr_t) h +sizeof(mem_chunk_head_t));
+    return ((table1[n].level2_table)+index);
+}
