@@ -89,7 +89,7 @@ void memInfoLt_and_heap_init(){
         mem_chunk_head=head;
     }
 
-    init_cover_chunk(0,0x00400000-page_size);
+    init_cover_chunk(0,0x00400000-(1+2)*page_size); //Last 2 pages are special.Leave them alone;
     init_cover_chunk(0x00400000+0xC0000000,heap_end-page_size);
 }
 
@@ -145,5 +145,5 @@ void init_cover_chunk(ptr_t from,ptr_t to){
         mem_table_level2_entry_t x={.addr=from,.pid=0,.flag=0b11};
         *(find_physical_page_info(kgetP(from)))=x;
         from+=page_size;
-    }
+    } //Yes I know this is bloody slow.But it only happened during the booting,right?
 }
