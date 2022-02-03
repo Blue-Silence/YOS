@@ -5,7 +5,7 @@
 #include "mem_manage_info.h"
 
 
-
+void tlb_flush();
 
 extern ptr_t boot_page_directory[];
 
@@ -85,13 +85,14 @@ int kfree(ptr_t free_ptr){
 /* for now just map 4096*1022 tp p_addr.more work needed */
 extern ptr_t boot_page_table1[];
 ptr_t map_physical(ptr_t p_addr){
-
     boot_page_table1[1022]=p_addr+0x003;
+    tlb_flush();
     return 4096*1022;
 }
 
 int map_physical_free(ptr_t p_addr){
     boot_page_table1[1022]=(ptr_t) NULL;
+    tlb_flush();
     return 0;
 }
 
