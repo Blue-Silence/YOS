@@ -18,9 +18,9 @@ SECTIONS
 
     .init ALIGN (4K) :
 	{
-		init_paging.o(*)
-		init_gdt.o(*)
-		mmap.o(*)
+		*init_paging.c.o(*)
+		*init_gdt.c.o(*)
+		*mmap.c.o(*)
 		*(.init)
 	}
 

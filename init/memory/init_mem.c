@@ -1,6 +1,6 @@
 #include <stddef.h>
 #include "mem_manage_info.h"
-#include "mem_info.h"
+#include "init_mem_info.h"
 
 extern uint8_t _kernel_end[];
 

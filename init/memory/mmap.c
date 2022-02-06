@@ -1,5 +1,5 @@
 #include <stdint.h>
-#include "mem_info.h"
+#include "init_mem_info.h"
 
 #define MEM_CHUNK_NUM
 

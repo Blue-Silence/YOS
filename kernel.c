@@ -105,34 +105,17 @@ void terminal_writestring(const char* data)
 }
 
 
-extern int num_o;
-extern int num_u;
-extern uint8_t mmap_nodes_usable[];
-
-
-typedef struct mem_node_usable{
-    uint64_t base_addr;
-    uint64_t length;
-} __attribute__((packed)) mem_node_usable;
-
 
 void kernel_main(void)
 {
 	/* Initialize terminal interface */
 	init_idt();
     terminal_initialize();
+    terminal_writestring("Hello, kernel World!\n");
+    memInfoLt_and_heap_init();
 
-
-	/* Newline support is left as an exercise. */
-	//terminal_writestring("Hello, kernel World!\n");
-    //terminal_writestring("Hello, kernel World!\n");
-    putNum((uint64_t) num_o);
-    putNum((uint64_t) num_u);
-    mem_node_usable * ptr=mmap_nodes_usable;
     asm("int $255");
-    ptr++;
-    putNum(ptr->base_addr);
-    putNum(ptr->length);
+
 
 }
 

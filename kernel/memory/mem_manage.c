@@ -1,9 +1,7 @@
 #include <stddef.h>
 #include <stdbool.h>
-#include "mem_info.h"
 #include "mem_manage.h"
 #include "mem_manage_info.h"
-
 
 void tlb_flush();
 

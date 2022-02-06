@@ -1,16 +1,14 @@
 #include <stdint.h>
 
+#include "basic.h"
+
 #ifndef MEM_MANAGE_H
 #define MEM_MANAGE_H
 
 
-typedef uint32_t ptr_t;
-typedef uint32_t pid_t;
 
 typedef uint32_t page_num_t;
 typedef uint32_t flag_t;
-typedef uint32_t size_t;
-typedef size_t length_t;
 
 
 typedef struct page_get_t{
