@@ -1,3 +1,4 @@
+#include "common.h"
 void isr_handler0(){
     ;
 }
@@ -128,4 +129,16 @@ void isr_handler31(){
 
 void isr_handler255(){
     terminal_writestring("Hello, kernel World!\n");
+}
+
+void irq_handler0(){
+    static int i=0;
+    i++;
+    if (i==100)
+    {
+        terminal_writestring("wake!!!\n");
+        i=0;
+    }
+
+    outb(0x20, 0x20);
 }

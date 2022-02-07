@@ -81,8 +81,53 @@ ISR_NOERRCODE 29
 ISR_NOERRCODE 30
 ISR_NOERRCODE 31
 # 32 ～ 255 用户自定义
+
+
 ISR_NOERRCODE 255
 
+
+
+
+.macro IRQ n
+.global irq\n
+irq\n:
+    cli                  # 首先关闭中断
+    push $0              # push 无效的中断错误代码
+    push $\n             # push 中断号
+    irq_common \n
+.endm
+
+
+
+.macro irq_common n
+    pusha                    # Push%es edi, %esi, ebp, %esp, %e%bx, edx, ecx, e%ax
+    mov %ds,%ax
+    push %eax                # 保存数据段描述符
+    
+    mov $0x10, %ax            # 加载内核数据段描述符表
+    mov %ax, %ds
+    mov %ax, %es
+    mov %ax, %fs
+    mov %ax, %gs
+    mov %ax, %ss
+    
+    push %esp        # 此时的 %esp 寄存器的值等价于 pt_re%gs 结构体的指针
+    call irq_handler\n         # 在 C 语言代码里
+    add $4, %esp      # 清除压入的参数
+    
+    pop %ebx                 # 恢复原来的数据段描述符
+    mov %bx, %ds 
+    mov %bx, %es
+    mov %bx, %fs
+    mov %bx, %gs
+    mov %bx, %ss
+    
+    popa                     # Pops edi, %esi, ebp, %esp, %e%bx, edx, ecx, e%ax
+    add $8, %esp              # 清理栈里的 error code 和 ISR
+    iret
+.endm
+
+IRQ 0
 
 .global idt_flush
 idt_flush:

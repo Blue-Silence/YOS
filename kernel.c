@@ -116,7 +116,10 @@ void kernel_main(void)
 
     asm("int $255");
 
-
+	
+	 for(;;) {
+    asm("hlt");
+	
 }
 
 

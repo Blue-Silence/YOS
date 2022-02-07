@@ -8,7 +8,7 @@ add_library(init OBJECT
 
             interrupt/init_idt.c
             interrupt/interrupt_handlers.c
-            interrupt/isr_wrapper.s
+            interrupt/idt.s
 
             memory/init_mem.c
             memory/init_paging.c

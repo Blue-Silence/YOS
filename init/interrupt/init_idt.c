@@ -1,4 +1,5 @@
 #include <stdint.h>
+#include "common.h"
 
 typedef struct gate_descriptor{
     uint16_t offset_low;
@@ -51,15 +52,42 @@ void isr29();
 void isr30();
 void isr31();
 
+void irq0();
+
 // 32 ~ 255 用户自定义异常
 void isr255();
-
+void init_timer(uint32_t frequency);
+void idt_set_gate(uint8_t num, uint32_t base, uint16_t sel, uint8_t flags);
 
 void init_idt(){
     idt_ptr.limit = sizeof(gate_descriptor_t) * 256 - 1;
     idt_ptr.base  = (uint32_t)idt;
     
-    //bzero((uint8_t *)idt, sizeof(gate_descriptor_t) * 256);
+
+	// 初始化主片、从片
+	// 0001 0001
+	outb(0x20, 0x11);
+	outb(0xA0, 0x11);
+
+	// 设置主片 IRQ 从 0x20(32) 号中断开始
+	outb(0x21, 0x20);
+
+	// 设置从片 IRQ 从 0x28(40) 号中断开始
+	outb(0xA1, 0x28);
+
+	// 设置主片 IR2 引脚连接从片
+	outb(0x21, 0x04);
+
+	// 告诉从片输出引脚和主片 IR2 号相连
+	outb(0xA1, 0x02);
+
+	// 设置主片和从片按照 8086 的方式工作
+	outb(0x21, 0x01);
+	outb(0xA1, 0x01);
+
+	// 设置主从片允许中断
+	outb(0x21, 0x0);
+	outb(0xA1, 0x0);
 
     // 0-32:  用于 CPU 的中断处理
     idt_set_gate( 0, (uint32_t)isr0,  0x08, 0x8E);
@@ -95,11 +123,18 @@ void init_idt(){
     idt_set_gate(30, (uint32_t)isr30, 0x08, 0x8E);
     idt_set_gate(31, (uint32_t)isr31, 0x08, 0x8E);
 
+    idt_set_gate(32, (uint32_t)irq0, 0x08, 0x8E);
+
     // 255 将来用于实现系统调用
     idt_set_gate(255, (uint32_t)isr255, 0x08, 0x8E);
 
+    init_timer(100);
+
+
     // 更新设置中断描述符表
     idt_flush((uint32_t)&idt_ptr);
+
+    asm volatile ("sti");
 }
 
 void idt_set_gate(uint8_t num, uint32_t base, uint16_t sel, uint8_t flags)
@@ -113,4 +148,26 @@ void idt_set_gate(uint8_t num, uint32_t base, uint16_t sel, uint8_t flags)
     // 先留下 0x60 这个魔数，以后实现用户态时候
     // 这个与运算可以设置中断门的特权级别为 3
     idt[num].type_0_dpl_p = flags;  // | 0x60
+}
+
+
+ void init_timer(uint32_t frequency)
+{
+    // Intel 8253/8254 PIT芯片 I/O端口地址范围是40h~43h
+    // 输入频率为 1193180，frequency 即每秒中断次数
+    uint32_t divisor = 1193180 / frequency;
+
+    // D7 D6 D5 D4 D3 D2 D1 D0
+    // 0  0  1  1  0  1  1  0
+    // 即就是 36 H
+    // 设置 8253/8254 芯片工作在模式 3 下
+    outb(0x43, 0x36);
+
+    // 拆分低字节和高字节
+    uint8_t low = (uint8_t)(divisor & 0xFF);
+    uint8_t hign = (uint8_t)((divisor >> 8) & 0xFF);
+
+    // 分别写入低字节和高字节
+    outb(0x40, low);
+    outb(0x40, hign);
 }

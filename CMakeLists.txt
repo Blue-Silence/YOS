@@ -12,7 +12,7 @@ add_subdirectory(kernel)
 # add the executable
 add_executable(YOS kernel.c boot.s)
 
-target_link_libraries(YOS HAL init kernel "-T linker.ld -o myos.bin -ffreestanding -O2 -nostdlib -lgcc")
+target_link_libraries(YOS HAL init kernel "-T ${PROJECT_SOURCE_DIR}/linker.ld -o myos.bin -ffreestanding -O2 -nostdlib -lgcc")
 
 target_include_directories(YOS PUBLIC
                           "${PROJECT_SOURCE_DIR}"
